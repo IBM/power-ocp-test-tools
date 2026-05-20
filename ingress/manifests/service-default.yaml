@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: echopulse-default-svc
+  labels:
+    app: echopulse
+spec:
+  type: ClusterIP
+  selector:
+    app: echopulse
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: http
