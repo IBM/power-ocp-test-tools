@@ -1,7 +1,7 @@
-# ocp4-power-workload-tools
+# power-ocp-test-tools
 This repository aids the debug of scheduling on ppc64le.
 
-The [`ocp4-power-workload-tools` project](https://github.com/ocp-power-automation/ocp4-power-workload-tools) provides code to debug workloads on OpenShift Container Platform (OCP) 4.x compute workers on a variety of platforms.
+The [`power-ocp-test-tools` project](https://github.com/ibm/power-ocp-test-tools) provides code to test workloads on OpenShift Container Platform (OCP) on a variety of platforms.
 
 ## Use
 
