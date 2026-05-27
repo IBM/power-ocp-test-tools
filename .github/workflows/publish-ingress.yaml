@@ -7,11 +7,11 @@ on:
     tags: [ 'v*.*.*' ]
     paths:
       - '.github/workflows/publish-ingress.yaml'
-      - 'ingress/**'
+      - 'network-latency/**'
 
 env:
   REGISTRY: quay.io
-  IMAGE_NAME: pbastide_rh/ingress
+  IMAGE_NAME: pbastide_rh/network-latency
 
 jobs:
   build:
@@ -59,9 +59,9 @@ jobs:
           context: ingress
           platforms: linux/ppc64le
           containerfiles: |
-            ./ingress/Containerfile
+            ./network-latency/Containerfile
           tags: latest ${{ github.sha }}
-          image: ingress
+          image: network-latency
           layers: false
           oci: true
 
