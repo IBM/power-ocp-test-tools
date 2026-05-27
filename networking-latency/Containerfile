@@ -1,0 +1,32 @@
+# Stage 1: Build Stage
+FROM quay.io/fedora/fedora-minimal:45 AS builder
+WORKDIR /usr/src/echopulse
+
+# Install rust toolset and build essentials
+RUN microdnf install -y \
+    gcc \
+    gcc-c++ \
+    openssl-devel \
+    pkg-config \
+    curl \
+    rustup.ppc64le \
+    cargo.ppc64le \
+    && microdnf clean all \
+    && rustup-init -y --default-host powerpc64le-unknown-linux-gnu --default-toolchain stable
+
+COPY Cargo.toml ./
+COPY src ./src
+
+# Leverage BuildKit target platform args passed automatically by buildx
+ARG TARGETPLATFORM "linux"
+ARG TARGETARCH "ppc64le"
+
+RUN . "$HOME/.cargo/env" && \
+    cargo build --release --target powerpc64le-unknown-linux-gnu -j 1 && \
+    cp target/powerpc64le-unknown-linux-gnu/release/echopulse /usr/local/bin/echopulse
+
+FROM quay.io/fedora/fedora-minimal:45
+COPY --from=builder /usr/local/bin/echopulse /usr/local/bin/echopulse
+EXPOSE 8080
+USER 1001
+CMD ["/usr/local/bin/echopulse"]

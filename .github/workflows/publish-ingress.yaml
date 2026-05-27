@@ -1,0 +1,77 @@
+name: Publish ingress
+
+on:
+  push:
+    branches:
+      - main
+    tags: [ 'v*.*.*' ]
+    paths:
+      - '.github/workflows/publish-ingress.yaml'
+      - 'ingress/**'
+
+env:
+  REGISTRY: quay.io
+  IMAGE_NAME: pbastide_rh/ingress
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # Install the cosign tool except on PR
+      # https://github.com/sigstore/cosign-installer
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@v4.1.2
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Install QEMU dependency for multi-arch builds
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y qemu-user-static
+
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.HTTPBIN_USER }}
+          password: ${{ secrets.HTTPBIN_TOKEN }}
+
+      # Build and push Docker image with Buildx (don't push on PR)
+      # https://github.com/docker/build-push-action
+      - name: Build Image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          context: ingress
+          platforms: linux/ppc64le
+          containerfiles: |
+            ./ingress/Containerfile
+          tags: latest ${{ github.sha }}
+          image: ingress
+          layers: false
+          oci: true
+
+      - name: Push To quay.io
+        if: github.event_name != 'pull_request'
+        id: push-to-quay
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: quay.io/pbastide_rh
+          username: ${{ secrets.HTTPBIN_USER }}
+          password: ${{ secrets.HTTPBIN_TOKEN }}

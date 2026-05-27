@@ -14,7 +14,8 @@ serde_json = "1.0"
 rand = "0.8"
 
 [profile.release]
-opt-level = 2
+opt-level = 0
 lto = "thin"
-codegen-units = 4
+codegen-units = 1 # Reduces parallel codegen overhead, saving memory
 strip = true
+debug = false     # Ensures debug symbols aren't eating up RAM
