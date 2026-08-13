@@ -1,5 +1,5 @@
 # Stage 1: Build Stage
-FROM quay.io/fedora/fedora-minimal:45 AS builder
+FROM quay.io/fedora/fedora-minimal:46 AS builder
 WORKDIR /usr/src/echopulse
 
 # Install rust toolset and build essentials
@@ -25,7 +25,7 @@ RUN . "$HOME/.cargo/env" && \
     cargo build --release --target powerpc64le-unknown-linux-gnu -j 1 && \
     cp target/powerpc64le-unknown-linux-gnu/release/echopulse /usr/local/bin/echopulse
 
-FROM quay.io/fedora/fedora-minimal:45
+FROM quay.io/fedora/fedora-minimal:46
 COPY --from=builder /usr/local/bin/echopulse /usr/local/bin/echopulse
 EXPOSE 8080
 USER 1001
