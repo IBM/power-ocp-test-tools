@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora-minimal:45
+FROM quay.io/fedora/fedora-minimal:46
 
 # Update if you need... microdnf update -y
 
