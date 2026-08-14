@@ -60,7 +60,7 @@ jobs:
       # Build and push
       - name: Build and push Docker image
         id: build-image
-        uses: redhat-actions/buildah-build@v3.0.1
+        uses: redhat-actions/buildah-build@v3.0.2
         with:
           context: rhcl/mockserver
           platforms: linux/ppc64le,linux/s390x
