@@ -24,7 +24,7 @@ RUN curl "https://repo.maven.apache.org/maven2/org/mock-server/mockserver-netty/
 COPY --chown=fedora:root . .
 
 # Set permissions as per original image history
-RUN chmod ug+rwx . && chmod ug+r mockserver.jar
+RUN chmod ug+rwx . && chmod ug+r mockserver.jar && chmod ug+rx entrypoint
 
 # Final configuration
 USER fedora

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+exec java \
+	-cp mockserver.jar \
+	-Dfile.encoding=UTF-8 \
+	-Dmockserver.propertyFile=mockserver.properties \
+	-Dmockserver.maxLogEntries=600 \
+	-Dmockserver.enableCORSForAllResponses="true" \
+	-Dmockserver.corsAllowOrigin='*' \
+	-Dmockserver.corsAllowMethods="CONNECT, DELETE, GET, HEAD, OPTIONS, POST, PUT, PATCH, TRACE" \
+	-Dmockserver.corsAllowHeaders="Allow, Content-Encoding, Content-Length, Content-Type, ETag, Expires, Last-Modified, Location, Server, Vary, Authorization" \
+	-Dmockserver.corsMaxAgeInSeconds=300 \
+	org.mockserver.cli.Main \
+	-serverPort 1080 \
+	"$@"
