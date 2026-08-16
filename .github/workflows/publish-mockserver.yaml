@@ -1,85 +1,79 @@
 name: Publish rhcl/mockserver
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 on:
   push:
     branches:
       - main
-    tags: [ 'v*.*.*' ]
+    tags:
+      - "v*.*.*"
     paths:
-      - '.github/workflows/publish-mockserver.yaml'
-      - 'rhcl/mockserver/**'
+      - ".github/workflows/publish-mockserver.yaml"
+      - "rhcl/mockserver/**"
 
 env:
-  # Use docker.io for Docker Hub if empty
   REGISTRY: quay.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: pbastide_rh/mockserver-ppc64le
+  IMAGE: quay.io/pbastide_rh/mockserver-ppc64le
+  MANIFEST: mockserver-multiarch
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
-      packages: write
-      # This is used to complete the identity challenge
-      # with sigstore/fulcio when running outside of PRs.
-      id-token: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      # Install the cosign tool except on PR
-      # https://github.com/sigstore/cosign-installer
-      - name: Install cosign
-        if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@v4.1.2
-        with:
-          cosign-release: 'v3.1.3'
-
-      - name: Install QEMU dependency for multi-arch builds
+      - name: Install QEMU
         run: |
-          sudo apt-get update -y
+          sudo apt-get update
           sudo apt-get install -y qemu-user-static
 
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
+      - name: Log into Quay
         uses: redhat-actions/podman-login@v2
         with:
-          registry: quay.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.HTTPBIN_USER }}
           password: ${{ secrets.HTTPBIN_TOKEN }}
 
-      # Build and push
-      - name: Build and push Docker image
-        id: build-image
-        uses: redhat-actions/buildah-build@v3
-        with:
-          context: rhcl/mockserver
-          platforms: linux/ppc64le,linux/s390x
-          containerfiles: |
-            ./rhcl/mockserver/Containerfile
-          tags: latest ${{ github.sha }}
-          image: mockserver-ppc64le
-          layers: false
-          oci: true
-          buildah-image: quay.io/buildah/stable
+      - name: Build multi-architecture image
+        shell: bash
+        run: |
+          set -euo pipefail
 
-      - name: Push To quay.io
-        if: github.event_name != 'pull_request'
-        id: push-to-quay
-        uses: redhat-actions/push-to-registry@v3
-        with:
-          image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ steps.build-image.outputs.tags }}
-          registry: quay.io/pbastide_rh
-          username: ${{ secrets.HTTPBIN_USER }}
-          password: ${{ secrets.HTTPBIN_TOKEN }}
-          buildah-image: quay.io/buildah/stable
+          buildah manifest create "${MANIFEST}"
+
+          buildah bud \
+            --platform linux/ppc64le \
+            --manifest "${MANIFEST}" \
+            --format oci \
+            --layers=false \
+            --tls-verify=true \
+            -f rhcl/mockserver/Containerfile \
+            rhcl/mockserver
+
+          buildah bud \
+            --platform linux/s390x \
+            --manifest "${MANIFEST}" \
+            --format oci \
+            --layers=false \
+            --tls-verify=true \
+            -f rhcl/mockserver/Containerfile \
+            rhcl/mockserver
+
+      - name: Inspect manifest
+        run: buildah manifest inspect "${MANIFEST}"
+
+      - name: Push latest tag
+        run: |
+          buildah manifest push --all \
+            "${MANIFEST}" \
+            "docker://${IMAGE}:latest"
+
+      - name: Push commit tag
+        run: |
+          buildah manifest push --all \
+            "${MANIFEST}" \
+            "docker://${IMAGE}:${GITHUB_SHA}"
