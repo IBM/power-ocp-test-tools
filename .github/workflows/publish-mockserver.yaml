@@ -60,7 +60,7 @@ jobs:
       # Build and push
       - name: Build and push Docker image
         id: build-image
-        uses: redhat-actions/buildah-build@v3.0.0
+        uses: redhat-actions/buildah-build@v3
         with:
           context: rhcl/mockserver
           platforms: linux/ppc64le,linux/s390x
@@ -70,6 +70,7 @@ jobs:
           image: mockserver-ppc64le
           layers: false
           oci: true
+          buildah-image: quay.io/buildah/stable
 
       - name: Push To quay.io
         if: github.event_name != 'pull_request'
@@ -81,3 +82,4 @@ jobs:
           registry: quay.io/pbastide_rh
           username: ${{ secrets.HTTPBIN_USER }}
           password: ${{ secrets.HTTPBIN_TOKEN }}
+          buildah-image: quay.io/buildah/stable
