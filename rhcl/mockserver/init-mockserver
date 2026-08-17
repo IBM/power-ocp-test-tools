@@ -1,0 +1,104 @@
+#!/bin/sh
+
+if [ -z "$MOCKSERVER" ]; then
+	MOCKSERVER=localhost:1080
+fi
+
+while ! curl -f -v -X PUT "http://$MOCKSERVER/mockserver/expectation" -d '{
+	"httpRequest" : {"headers": {"Host": ["mockserver.*"]}},
+	"httpResponseTemplate": {
+		"templateType": "JAVASCRIPT",
+		"template": "return {
+			statusCode: 200,
+			cookies: {session: request.headers[\"Session-Id\"] && request.headers[\"Session-Id\"][0]},
+			headers: {
+				\"Content-Type\": [\"application/json\"],
+				Date: [Date()]},
+			body: JSON.stringify(request)};"},
+	"priority": -100}' ; do
+	sleep 1
+done
+
+curl -f -v -X PUT "http://$MOCKSERVER/mockserver/expectation" -d '{
+	"httpRequest" : {"path": "/bytes/.*"},
+	"httpResponseTemplate": {
+		"templateType": "JAVASCRIPT",
+		"template": "return {
+			statusCode: 200,
+			cookies: {session: request.headers[\"Session-Id\"] && request.headers[\"Session-Id\"][0]},
+			headers: {Date: [Date()]},
+			body: \"#\".repeat(parseInt(request.path.split(\"/\")[2]))};"}}'
+
+curl -f -v -X PUT "http://$MOCKSERVER/mockserver/expectation" -d '{
+	"httpRequest" : {"path": "/delay/.*"},
+	"httpResponseTemplate": {
+		"templateType": "JAVASCRIPT",
+		"template": "return {
+			delay: {timeUnit: \"SECONDS\", value: parseInt(request.path.split(\"/\")[2])},
+			statusCode: 200,
+			cookies: {session: request.headers[\"Session-Id\"] && request.headers[\"Session-Id\"][0]},
+			headers: {
+				\"Content-Type\": [\"application/json\"],
+				Date: [Date()]},
+			body: JSON.stringify(request)};"}}'
+
+curl -f -v -X PUT "http://$MOCKSERVER/mockserver/expectation" -d '{
+	"httpRequest" : {"path": "/ip"},
+	"httpResponseTemplate": {
+		"templateType": "JAVASCRIPT",
+		"template": "return {
+			statusCode: 200,
+			cookies: {session: request.headers[\"Session-Id\"] && request.headers[\"Session-Id\"][0]},
+			headers: {
+				\"Content-Type\": [\"application/json\"],
+				Date: [Date()]},
+			body: JSON.stringify({origin: function() {
+				var forwarded = request.headers[\"X-Forwarded-For\"] || request.headers[\"x-forwarded-for\"];
+				return forwarded[0].split(\",\")[0]
+			}()})
+		};"
+	}
+}'
+
+curl -f -v -X PUT "http://$MOCKSERVER/mockserver/expectation" -d '{
+	"httpRequest" : {"path": "/redirect-to"},
+	"httpResponseTemplate": {
+		"templateType": "JAVASCRIPT",
+		"template": "return {
+			statusCode: 302,
+			cookies: {session: request.headers[\"Session-Id\"] && request.headers[\"Session-Id\"][0]},
+			headers: {Location: request.queryStringParameters[\"url\"]}};"}}'
+
+curl -f -v -X PUT "http://$MOCKSERVER/mockserver/expectation" -d '{
+	"httpRequest" : {"path": "/response-headers"},
+	"httpResponseTemplate": {
+		"templateType": "JAVASCRIPT",
+		"template": "return {
+			statusCode: 200,
+			cookies: {session: request.headers[\"Session-Id\"] && request.headers[\"Session-Id\"][0]},
+			headers: request.queryStringParameters,
+			body: JSON.stringify(request)};"}}'
+
+curl -f -v -X PUT "http://$MOCKSERVER/mockserver/expectation" -d '{
+	"httpRequest" : {"path": "/status/.*"},
+	"httpResponseTemplate": {
+		"templateType": "JAVASCRIPT",
+		"template": "return {
+			statusCode: parseInt(request.path.split(\"/\")[2]),
+			cookies: {session: request.headers[\"Session-Id\"] && request.headers[\"Session-Id\"][0]},
+			headers: {
+				\"Content-Type\": [\"application/json\"],
+				Date: [Date()]},
+			body: JSON.stringify(request)};"}}'
+
+curl -f -v -X PUT "http://$MOCKSERVER/mockserver/expectation" -d '{
+	"httpRequest" : {"path": "/uuid"},
+	"httpResponseTemplate": {
+		"templateType": "JAVASCRIPT",
+		"template": "return {
+			statusCode: 200,
+			cookies: {session: request.headers[\"Session-Id\"] && request.headers[\"Session-Id\"][0]},
+			headers: {
+				\"Content-Type\": [\"application/json\"],
+				Date: [Date()]},
+			body: JSON.stringify({\"uuid\": uuid})};"}}'
