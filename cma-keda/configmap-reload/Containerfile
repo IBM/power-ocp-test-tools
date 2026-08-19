@@ -1,4 +1,4 @@
-FROM golang:1.26 as builder
+FROM golang:1.27 as builder
 
 WORKDIR /src
 RUN curl -O -L https://raw.githubusercontent.com/jimmidyson/configmap-reload/refs/heads/main/configmap-reload.go \
