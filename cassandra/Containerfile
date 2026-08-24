@@ -1,0 +1,20 @@
+FROM registry.access.redhat.com/ubi10/ubi-minimal:latest as download
+
+# Set working directory
+WORKDIR /tmp/cassandra
+
+# Install dependencies using microdnf (standard for fedora-minimal)
+RUN microdnf install -y curl tar file gzip
+
+RUN curl -L -o /tmp/cassandra/cassandra.tar.gz https://dlcdn.apache.org/cassandra/5.0.9/apache-cassandra-5.0.9-bin.tar.gz \
+    && gunzip /tmp/cassandra/cassandra.tar.gz \
+    && tar -xf /tmp/cassandra/cassandra.tar -C /tmp/cassandra/ \
+    && mv /tmp/cassandra/apache-cassandra-5.0.9 /tmp/cassandra/cassandra
+
+FROM registry.access.redhat.com/ubi8/python-38:latest
+
+WORKDIR /opt
+
+COPY --from=download /tmp/cassandra/cassandra /opt/
+
+ENTRYPOINT [ "/opt/bin/cqlsh" ]
