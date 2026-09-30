@@ -27,11 +27,13 @@ WORKDIR="$(mktemp -d /tmp/haproxy-kind-test.XXXXXX)"
 KUBECONFIG_LB="${WORKDIR}/kubeconfig-via-lb.yaml"
 KEEP_CLUSTER="${KEEP_CLUSTER:-0}"
 
-KIND_IMAGE := quay.io/powercloud/kind-node:v1.34.1
-#KIND_IMAGE = docker.io/kindest/node:v1.34.1
-KIND_CLUSTER_NAME="power-dra-driver-cluster"
-KIND_CLUSTER_CONFIG_PATH = "hack/kind-cluster-config.yaml"
-KIND_EXPERIMENTAL_PROVIDER:="podman"
+KIND_IMAGE="docker.io/kindest/node:v1.34.1"
+if [ "$(arch)" = "ppc64le" ]
+then
+    KIND_IMAGE="quay.io/powercloud/kind-node:v1.34.1"
+fi
+KIND_CLUSTER_NAME="haproxy-cluster"
+KIND_EXPERIMENTAL_PROVIDER="podman"
 
 log()  { echo "[$(date '+%H:%M:%S.%3N')] $*"; }
 
@@ -42,7 +44,7 @@ setup_kind() {
     KIND_EXPERIMENTAL_PROVIDER=podman dev-cache/kind create cluster \
         --image ${KIND_IMAGE} \
         --name ${KIND_CLUSTER_NAME} \
-        --config ${KIND_CLUSTER_CONFIG_PATH} \
+        --configcluster-config.yaml \
         --wait 5m
 }
 
@@ -68,14 +70,7 @@ trap cleanup EXIT
 #    one Podman network.
 # -----------------------------------------------------------------------
 log "creating 3-control-plane kind cluster '${CLUSTER_NAME}'"
-cat <<EOF | KIND_EXPERIMENTAL_PROVIDER=${KIND_EXPERIMENTAL_PROVIDER} dev-cache/kind create cluster --name "${CLUSTER_NAME}" --config -
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-  - role: control-plane
-  - role: control-plane
-  - role: control-plane
-EOF
+KIND_EXPERIMENTAL_PROVIDER=${KIND_EXPERIMENTAL_PROVIDER} dev-cache/kind create cluster --name "${CLUSTER_NAME}" --config cluster-config.yaml
 
 log "discovering control-plane node IPs on the '${PODMAN_NETWORK}' network"
 mapfile -t NODES < <(dev-cache/kind get nodes --name "${CLUSTER_NAME}" | grep control-plane | sort)
