@@ -25,7 +25,7 @@ setup_kind() {
     log "creating 3-control-plane kind cluster '${CLUSTER_NAME}'"
 
     mkdir -p dev-cache
-    GOBIN=$(PWD)/dev-cache/ go install sigs.k8s.io/kind@v0.29.0
+    GOBIN=$(pwd)/dev-cache/ go install sigs.k8s.io/kind@v0.29.0
 
     KIND_EXPERIMENTAL_PROVIDER=podman dev-cache/kind create cluster \
         --image ${KIND_IMAGE} \
