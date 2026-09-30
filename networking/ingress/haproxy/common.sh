@@ -130,18 +130,30 @@ run_drain_test() {
 }
 
 generate_live_config() {
-    log "discovering control-plane node IPs on the '${PODMAN_NETWORK}' network"
-    mapfile -t NODES < <(dev-cache/kind get nodes --name "${CLUSTER_NAME}" | grep control-plane | sort)
-    IPS=(
-    for n in "${NODES[@]}"; do
-    ip=$(podman inspect -f "{{.NetworkSettings.Networks.${PODMAN_NETWORK}.IPAddress}}" "${n}")
-    IPS+=("${ip}")
-    log "  ${n} -> ${ip}:6443"
-    done
+  log "discovering control-plane node IPs on the '${PODMAN_NETWORK}' network"
 
-    i=0
-    for ip in "${IPS[@]}"; do
-    sed -i "s/MASTER${i}_IP/${ip}/g" "${WORKDIR}/haproxy-live.cfg"
-    i=$((i+1))
-    done
+  local nodes=()
+  mapfile -t nodes < <(dev-cache/kind get nodes --name "${CLUSTER_NAME}" | grep 'control-plane' | sort)
+
+  if ((${#nodes[@]} == 0)); then
+    log "ERROR: No control-plane nodes found for cluster '${CLUSTER_NAME}'"
+    return 1
+  fi
+
+  # Single podman inspect call for all nodes
+  local ips=()
+  mapfile -t ips < <(podman inspect -f "{{.NetworkSettings.Networks.${PODMAN_NETWORK}.IPAddress}}" "${nodes[@]}")
+
+  # Build sed replacement expressions and log output in one pass
+  local sed_args=()
+  for i in "${!ips[@]}"; do
+    local node="${nodes[i]}"
+    local ip="${ips[i]}"
+    log "  ${node} -> ${ip}:6443"
+    sed_args+=(-e "s/MASTER${i}_IP/${ip}/g")
+  done
+
+  # Perform all replacements in a single sed invocation
+  sed "${sed_args[@]}" "${WORKDIR}/haproxy-live.cfg" > "${WORKDIR}/haproxy-live.cfg.tmp" && \
+    mv "${WORKDIR}/haproxy-live.cfg.tmp" "${WORKDIR}/haproxy-live.cfg"
 }
