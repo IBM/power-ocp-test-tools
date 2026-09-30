@@ -34,7 +34,6 @@ KIND_CLUSTER_CONFIG_PATH = "hack/kind-cluster-config.yaml"
 KIND_EXPERIMENTAL_PROVIDER:="podman"
 
 log()  { echo "[$(date '+%H:%M:%S.%3N')] $*"; }
-need() { command -v "$1" >/dev/null || { echo "missing required tool: $1"; exit 1; }; }
 
 setup_kind() {
     mkdir -p dev-cache
@@ -63,8 +62,6 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
-
-for t in podman kubectl curl jq bc; do need "$t"; done
 
 # -----------------------------------------------------------------------
 # 1. Bring up a 3-control-plane kind cluster: 3 real kube-apiservers on
