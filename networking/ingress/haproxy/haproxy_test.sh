@@ -1,41 +1,11 @@
 #!/usr/bin/env bash
 
-# The test follows this pattern:
-# 
-# 1. creates 3-control-plane kind cluster, puts a real
-# 2. loads haproxy.cfg (embedded below) in front of the 3 apiservers
-# 3. opens a long-lived HTTP/2 watch through it
-# 4. gracefully SIGTERMs one apiserver to simulate /readyz -> false during shutdown
-#       - Ref the scenario in openshift/cluster-kube-apiserver-operator#2222)
-#       - times how long it takes haproxy to mark that backend DOWN
-#       - times how long it takes the watch connection to actually die
-# 5. re-runs the same test with `on-marked-down shutdown-sessions` excluded
-#
-# Requirements: podman, kind, kubectl, curl, jq, bc
-#
-# Usage: ./test.sh
+# Testing
 
 set -euo pipefail
 
 source common.sh
 trap cleanup EXIT
-
-log "discovering control-plane node IPs on the '${PODMAN_NETWORK}' network"
-mapfile -t NODES < <(dev-cache/kind get nodes --name "${CLUSTER_NAME}" | grep control-plane | sort)
-IPS=()
-for n in "${NODES[@]}"; do
-  ip=$(podman inspect -f "{{.NetworkSettings.Networks.${PODMAN_NETWORK}.IPAddress}}" "${n}")
-  IPS+=("${ip}")
-  log "  ${n} -> ${ip}:6443"
-done
-
-i=0
-for ip in "${IPS[@]}"; do
-  sed -i "s/MASTER${i}_IP/${ip}/g" "${WORKDIR}/haproxy-live.cfg"
-  i=$((i+1))
-done
-# second copy with the fix stripped out, for the A/B comparison later
-sed -E 's/ on-marked-down shutdown-sessions//' "${WORKDIR}/haproxy-live.cfg" > "${WORKDIR}/haproxy-no-omd.cfg"
 
 # -----------------------------------------------------------------------
 # 2. Run haproxy in front of the 3 apiservers.

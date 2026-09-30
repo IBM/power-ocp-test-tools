@@ -128,3 +128,20 @@ run_drain_test() {
   # give the apiserver container a moment before we start the next node
   sleep 5
 }
+
+generate_live_config() {
+    log "discovering control-plane node IPs on the '${PODMAN_NETWORK}' network"
+    mapfile -t NODES < <(dev-cache/kind get nodes --name "${CLUSTER_NAME}" | grep control-plane | sort)
+    IPS=(
+    for n in "${NODES[@]}"; do
+    ip=$(podman inspect -f "{{.NetworkSettings.Networks.${PODMAN_NETWORK}.IPAddress}}" "${n}")
+    IPS+=("${ip}")
+    log "  ${n} -> ${ip}:6443"
+    done
+
+    i=0
+    for ip in "${IPS[@]}"; do
+    sed -i "s/MASTER${i}_IP/${ip}/g" "${WORKDIR}/haproxy-live.cfg"
+    i=$((i+1))
+    done
+}
