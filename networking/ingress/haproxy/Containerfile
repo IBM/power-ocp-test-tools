@@ -1,0 +1,21 @@
+FROM registry.redhat.io/ubi9/ubi-minimal:latest
+
+RUN microdnf install -y haproxy && \
+    microdnf clean all
+
+# Create a non-root user for haproxy
+RUN useradd -r -s /sbin/nologin haproxy
+
+# Allow binding to privileged ports as non-root
+RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/haproxy
+
+COPY haproxy.cfg /etc/haproxy/haproxy.cfg
+
+EXPOSE 80/tcp
+EXPOSE 443/tcp
+EXPOSE 80/udp
+EXPOSE 443/udp
+
+USER haproxy
+
+CMD ["/usr/sbin/haproxy", "-f", "/etc/haproxy/haproxy.cfg", "-db"]
