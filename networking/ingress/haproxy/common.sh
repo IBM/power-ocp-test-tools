@@ -30,7 +30,7 @@ setup_kind() {
     KIND_EXPERIMENTAL_PROVIDER=podman dev-cache/kind create cluster \
         --image ${KIND_IMAGE} \
         --name ${KIND_CLUSTER_NAME} \
-        --configcluster-config.yaml \
+        --config cluster-config.yaml \
         --wait 5m
 }
 
