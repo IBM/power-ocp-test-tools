@@ -4,9 +4,6 @@ RUN sed -i 's|\,http||g' /etc/yum.repos.d/* && \
     microdnf install -y haproxy && \
     microdnf clean all
 
-# Create a non-root user for haproxy
-RUN useradd -r -s /sbin/nologin haproxy
-
 # Allow binding to privileged ports as non-root
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/haproxy
 
