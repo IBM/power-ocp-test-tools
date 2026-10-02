@@ -3,7 +3,7 @@
 # Testing assume setup is complete and the haproxy container is created.
 
 set -euo pipefail
-
+source common.sh
 trap cleanup EXIT
 
 HAPROXY_CONTAINER="localhost/haproxy-custom:latest"
