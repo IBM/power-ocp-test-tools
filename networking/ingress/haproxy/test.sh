@@ -20,6 +20,8 @@ podman run -d --name "${HAPROXY_CONTAINER}" --network "${PODMAN_NETWORK}" \
   "${HAPROXY_IMAGE}" >/dev/null
 sleep 2
 
+set -x
+
 log "waiting for haproxy to mark all 3 backends UP"
 up=0
 for _ in $(seq 1 15); do
