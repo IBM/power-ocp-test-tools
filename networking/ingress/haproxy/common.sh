@@ -127,6 +127,10 @@ run_drain_test() {
   sleep 5
 }
 
+# Global array: NODES[0]="master0-container-name", NODES[1]=..., etc.
+# Populated by generate_live_config; consumed by run_drain_test.
+declare -a NODES=()
+
 generate_live_config() {
   log "discovering control-plane node IPs on the '${PODMAN_NETWORK}' network"
 
@@ -137,6 +141,12 @@ generate_live_config() {
     log "ERROR: No control-plane nodes found for cluster '${KIND_CLUSTER_NAME}'"
     return 1
   fi
+
+  # Populate global NODES map: index -> kind node container name
+  NODES=()
+  for i in "${!nodes[@]}"; do
+    NODES[$i]="${nodes[i]}"
+  done
 
   # Single podman inspect call for all nodes
   local ips=()
