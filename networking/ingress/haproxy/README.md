@@ -11,6 +11,8 @@
 
 ```
 $ bash deps.sh
+$ source common.sh
+$ setup_kind
 
 ```
 

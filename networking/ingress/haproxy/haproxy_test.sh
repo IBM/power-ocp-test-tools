@@ -4,7 +4,6 @@
 
 set -euo pipefail
 
-source common.sh
 trap cleanup EXIT
 
 # -----------------------------------------------------------------------
