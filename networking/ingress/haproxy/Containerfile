@@ -7,7 +7,7 @@ RUN sed -i 's|\,http||g' /etc/yum.repos.d/* && \
 # Allow binding to privileged ports as non-root
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/haproxy
 
-COPY haproxy.cfg /etc/haproxy/haproxy.cfg
+COPY haproxy-live.cfg /etc/haproxy/haproxy.cfg
 
 EXPOSE 80/tcp
 EXPOSE 443/tcp
