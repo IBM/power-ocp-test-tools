@@ -10,10 +10,10 @@
 5. re-runs the same test with `on-marked-down shutdown-sessions` excluded
 
 ```
+$ make build
 $ bash deps.sh
 $ source common.sh
 $ setup_kind
-
 ```
 
 

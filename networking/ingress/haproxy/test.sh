@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# Testing
+# Testing assume setup is complete and the haproxy container is created.
 
 set -euo pipefail
 
 trap cleanup EXIT
 
 # -----------------------------------------------------------------------
-# 2. Run haproxy in front of the 3 apiservers.
+# 1. Run haproxy in front of the 3 apiservers.
 # -----------------------------------------------------------------------
 log "starting haproxy container '${HAPROXY_CONTAINER}'"
 podman rm -f "${HAPROXY_CONTAINER}" >/dev/null 2>&1 || true
@@ -27,16 +27,16 @@ done
 log "backends UP: ${up}/3"
 curl -s "http://127.0.0.1:${STATS_PORT}/;csv" | awk -F',' '$2 ~ /^master/ {print "  "$2, $18}'
 if [[ "${up}" -ne 3 ]]; then
-  echo "not all backends came up healthy — aborting"; exit 1
+  echo "not all backends came up healthy — aborting"; return 1
 fi
 
 # -----------------------------------------------------------------------
-# 3. Kubeconfig pointed at haproxy instead of kind's own LB. TCP-mode
+# 2. Kubeconfig pointed at haproxy instead of kind's own LB. TCP-mode
 #    passthrough preserves the real apiserver TLS handshake, so the
 #    existing client cert / CA data stays valid — only the URL changes.
 # -----------------------------------------------------------------------
 log "building kubeconfig pointed at haproxy"
-dev-cache/kind get kubeconfig --name "${CLUSTER_NAME}" > "${KUBECONFIG_LB}"
+kind get kubeconfig --name "${CLUSTER_NAME}" > "${KUBECONFIG_LB}"
 sed -i -E "s#server: https://[^ ]+#server: https://127.0.0.1:${APISERVER_PORT}#" "${KUBECONFIG_LB}"
 
 log "sanity check: kubectl through haproxy"
