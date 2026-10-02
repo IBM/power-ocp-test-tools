@@ -16,7 +16,7 @@ log "starting haproxy container '${HAPROXY_CONTAINER}'"
 podman rm -f "${HAPROXY_CONTAINER}" >/dev/null 2>&1 || true
 podman run -d --name "${HAPROXY_CONTAINER}" --network "${PODMAN_NETWORK}" \
   -p "${APISERVER_PORT}:6443" -p "${STATS_PORT}:9000" \
-  -v "${WORKDIR}/haproxy-live.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro" \
+  -v "${WORKDIR}/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro" \
   "${HAPROXY_IMAGE}" >/dev/null
 sleep 2
 
@@ -50,19 +50,5 @@ kubectl --kubeconfig "${KUBECONFIG_LB}" get nodes
 # -----------------------------------------------------------------------
 run_drain_test "A_with_on_marked_down"
 
-# -----------------------------------------------------------------------
-# 6. Reload haproxy with the fix stripped out, run B for comparison.
-#    (Only 2 of the 3 apiservers are still alive at this point since we
-#    stopped one in run A — that's fine, the other two are enough to
-#    prove the point for run B.)
-# -----------------------------------------------------------------------
-log "reloading haproxy WITHOUT on-marked-down shutdown-sessions"
-podman cp "${WORKDIR}/haproxy-no-omd.cfg" "${HAPROXY_CONTAINER}:/usr/local/etc/haproxy/haproxy.cfg"
-podman kill -s HUP "${HAPROXY_CONTAINER}" >/dev/null
-sleep 2
-
-run_drain_test "B_without_on_marked_down"
-
-log "=== DONE. Compare the two RESULT lines above. ==="
+log "=== DONE ==="
 log "With the fix, the watch should die within ~0-1s of the backend being marked DOWN."
-log "Without it, the watch should stay alive well past that point."
