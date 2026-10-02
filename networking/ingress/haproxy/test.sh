@@ -6,6 +6,8 @@ set -euo pipefail
 
 trap cleanup EXIT
 
+HAPROXY_CONTAINER="localhost/haproxy-custom:latest"
+
 # -----------------------------------------------------------------------
 # 1. Run haproxy in front of the 3 apiservers.
 # -----------------------------------------------------------------------
