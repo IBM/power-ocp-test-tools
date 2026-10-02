@@ -23,10 +23,9 @@ log()  { echo "[$(date '+%H:%M:%S.%3N')] $*"; }
 setup_kind() {
     log "creating 3-control-plane kind cluster '${KIND_CLUSTER_NAME}'"
 
-    #mkdir -p dev-cache
     #GOBIN=$(pwd)/dev-cache/ go install sigs.k8s.io/kind@v0.29.0
 
-    KIND_EXPERIMENTAL_PROVIDER=podman /root/kind create cluster \
+    KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster \
         --image ${KIND_IMAGE} \
         --name ${KIND_CLUSTER_NAME} \
         --config cluster-config.yaml \
@@ -38,7 +37,7 @@ cleanup() {
   if [[ "${KEEP_CLUSTER}" != "1" ]]; then
     log "tearing down (set KEEP_CLUSTER=1 to skip this)"
     podman rm -f "${HAPROXY_CONTAINER}" >/dev/null 2>&1 || true
-    KIND_EXPERIMENTAL_PROVIDER=${KIND_EXPERIMENTAL_PROVIDER} /root/kind delete cluster --name "${KIND_CLUSTER_NAME}" >/dev/null 2>&1 || true
+    KIND_EXPERIMENTAL_PROVIDER=${KIND_EXPERIMENTAL_PROVIDER} kind delete cluster --name "${KIND_CLUSTER_NAME}" >/dev/null 2>&1 || true
     rm -rf "${WORKDIR}"
   else
     log "KEEP_CLUSTER=1 set — leaving cluster + haproxy running."
@@ -132,7 +131,7 @@ generate_live_config() {
   log "discovering control-plane node IPs on the '${PODMAN_NETWORK}' network"
 
   local nodes=()
-  mapfile -t nodes < <(/root/kind get nodes --name "${KIND_CLUSTER_NAME}" | grep 'control-plane' | sort)
+  mapfile -t nodes < <(kind get nodes --name "${KIND_CLUSTER_NAME}" | grep 'control-plane' | sort)
 
   if ((${#nodes[@]} == 0)); then
     log "ERROR: No control-plane nodes found for cluster '${KIND_CLUSTER_NAME}'"
