@@ -9,6 +9,11 @@ HAPROXY_CONTAINER="haproxy"
 HAPROXY_IMAGE="localhost/haproxy-custom:latest"
 
 # -----------------------------------------------------------------------
+# 0. Discover nodes (populates the NODES[] array used by run_drain_test)
+# -----------------------------------------------------------------------
+generate_live_config
+
+# -----------------------------------------------------------------------
 # 1. Run A: current config, WITH on-marked-down shutdown-sessions
 # -----------------------------------------------------------------------
 run_drain_test "A_with_on_marked_down"
