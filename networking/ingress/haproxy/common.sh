@@ -152,6 +152,6 @@ generate_live_config() {
   done
 
   # Perform all replacements in a single sed invocation
-  sed "${sed_args[@]}" "${WORKDIR}/haproxy-live.cfg" > "${WORKDIR}/haproxy-live.cfg.tmp" && \
+  sed "${sed_args[@]}" "haproxy.cfg" > "${WORKDIR}/haproxy-live.cfg.tmp" && \
     mv "${WORKDIR}/haproxy-live.cfg.tmp" "haproxy-live.cfg"
 }
