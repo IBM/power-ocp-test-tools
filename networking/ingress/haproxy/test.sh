@@ -6,7 +6,8 @@ set -euo pipefail
 source common.sh
 trap cleanup EXIT
 
-HAPROXY_CONTAINER="localhost/haproxy-custom:latest"
+HAPROXY_CONTAINER="haproxy"
+HAPROXY_IMAGE="localhost/haproxy-custom:latest"
 
 # -----------------------------------------------------------------------
 # 1. Run haproxy in front of the 3 apiservers.
