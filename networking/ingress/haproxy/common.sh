@@ -10,10 +10,10 @@ WORKDIR="$(mktemp -d /tmp/haproxy-kind-test.XXXXXX)"
 KUBECONFIG_LB="${WORKDIR}/kubeconfig-via-lb.yaml"
 KEEP_CLUSTER="${KEEP_CLUSTER:-0}"
 
-KIND_IMAGE="docker.io/kindest/node:v1.36.1"
+KIND_IMAGE="docker.io/kindest/node:v1.36.5"
 if [ "$(arch)" = "ppc64le" ]
 then
-    KIND_IMAGE="quay.io/powercloud/kind-node:v1.36.1"
+    KIND_IMAGE="quay.io/powercloud/kind-node:v1.36.5"
 fi
 KIND_CLUSTER_NAME="haproxy-cluster"
 KIND_EXPERIMENTAL_PROVIDER="podman"
