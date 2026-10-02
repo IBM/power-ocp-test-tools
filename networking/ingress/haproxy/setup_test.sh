@@ -46,10 +46,4 @@ sed -i -E "s#server: https://[^ ]+#server: https://127.0.0.1:${APISERVER_PORT}#"
 log "sanity check: kubectl through haproxy"
 kubectl --kubeconfig "${KUBECONFIG_LB}" get nodes
 
-# -----------------------------------------------------------------------
-# 3. Run A: current config, WITH on-marked-down shutdown-sessions
-# -----------------------------------------------------------------------
-run_drain_test "A_with_on_marked_down"
-
-log "=== DONE ==="
-log "With the fix, the watch should die within ~0-1s of the backend being marked DOWN."
+log "=== SETUP DONE ==="
