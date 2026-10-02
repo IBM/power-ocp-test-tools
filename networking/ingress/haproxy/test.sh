@@ -16,7 +16,7 @@ log "starting haproxy container '${HAPROXY_CONTAINER}'"
 podman rm -f "${HAPROXY_CONTAINER}" >/dev/null 2>&1 || true
 podman run -d --name "${HAPROXY_CONTAINER}" --network "${PODMAN_NETWORK}" \
   -p "${APISERVER_PORT}:6443" -p "${STATS_PORT}:9000" \
-  -v "${WORKDIR}/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro" \
+  -v "$(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro" \
   "${HAPROXY_IMAGE}" >/dev/null
 sleep 2
 
