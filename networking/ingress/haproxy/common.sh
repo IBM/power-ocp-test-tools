@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-CLUSTER_NAME="${CLUSTER_NAME:-lbtest}"
 HAPROXY_CONTAINER="test-haproxy"
 HAPROXY_IMAGE="haproxy:1.8-alpine"   # closest published image to RHEL 8's 1.8.27
 PODMAN_NETWORK="kind"
@@ -22,12 +21,12 @@ log()  { echo "[$(date '+%H:%M:%S.%3N')] $*"; }
 
 # Bring up a 3-control-plane kind cluster: 3 real kube-apiservers on one Podman network.
 setup_kind() {
-    log "creating 3-control-plane kind cluster '${CLUSTER_NAME}'"
+    log "creating 3-control-plane kind cluster '${KIND_CLUSTER_NAME}'"
 
     mkdir -p dev-cache
     GOBIN=$(pwd)/dev-cache/ go install sigs.k8s.io/kind@v0.29.0
 
-    KIND_EXPERIMENTAL_PROVIDER=podman dev-cache/kind create cluster \
+    KIND_EXPERIMENTAL_PROVIDER=podman /root/kind create cluster \
         --image ${KIND_IMAGE} \
         --name ${KIND_CLUSTER_NAME} \
         --config cluster-config.yaml \

@@ -4,7 +4,6 @@
 
 set -euo pipefail
 source common.sh
-trap cleanup EXIT
 
 HAPROXY_CONTAINER="haproxy"
 HAPROXY_IMAGE="localhost/haproxy-custom:latest"
@@ -41,7 +40,7 @@ fi
 #    existing client cert / CA data stays valid — only the URL changes.
 # -----------------------------------------------------------------------
 log "building kubeconfig pointed at haproxy"
-kind get kubeconfig --name "${CLUSTER_NAME}" > "${KUBECONFIG_LB}"
+kind get kubeconfig --name "${KIND_CLUSTER_NAME}" > "${KUBECONFIG_LB}"
 sed -i -E "s#server: https://[^ ]+#server: https://127.0.0.1:${APISERVER_PORT}#" "${KUBECONFIG_LB}"
 
 log "sanity check: kubectl through haproxy"
