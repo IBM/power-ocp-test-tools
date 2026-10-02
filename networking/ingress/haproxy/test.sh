@@ -14,7 +14,7 @@ HAPROXY_IMAGE="localhost/haproxy-custom:latest"
 log "starting haproxy container '${HAPROXY_CONTAINER}'"
 podman rm -f "${HAPROXY_CONTAINER}" >/dev/null 2>&1 || true
 podman run -d --name "${HAPROXY_CONTAINER}" --network "${PODMAN_NETWORK}" \
-  -p "${APISERVER_PORT}:6443" -p "${STATS_PORT}:9000" \
+  -p "${APISERVER_PORT}:16443" -p "${STATS_PORT}:9000" \
   -v "$(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro" \
   "${HAPROXY_IMAGE}" >/dev/null
 sleep 2
@@ -47,7 +47,7 @@ log "sanity check: kubectl through haproxy"
 kubectl --kubeconfig "${KUBECONFIG_LB}" get nodes
 
 # -----------------------------------------------------------------------
-# 5. Run A: current config, WITH on-marked-down shutdown-sessions
+# 3. Run A: current config, WITH on-marked-down shutdown-sessions
 # -----------------------------------------------------------------------
 run_drain_test "A_with_on_marked_down"
 
