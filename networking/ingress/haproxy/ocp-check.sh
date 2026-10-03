@@ -96,6 +96,9 @@ POD=$(oc get pod -n openshift-kube-apiserver -l app=openshift-kube-apiserver --n
 PID=$(oc rsh -n openshift-kube-apiserver ${POD} pgrep kube-apiserver)
 oc rsh -n openshift-kube-apiserver ${POD} kill ${PID}
 
+t0=$(date +%s.%N)
+log "t0: graceful SIGTERM to kube-apiserver in ${POD}"
+
 target=$(kubectl get nodes -owide -lnode-role.kubernetes.io/master= --no-headers | awk '{print $6}' | head -n 1)
 log "polling haproxy stats until ${target} is marked DOWN..."
 t1=""
